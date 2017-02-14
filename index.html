@@ -1,0 +1,647 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+	<title>CITES pre-ban major import/export countries</title>
+
+	<!-- D3.js -->	
+    <script src="http://d3js.org/d3.v3.js"></script>
+
+	
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>	
+	
+	<!-- Underscore -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	
+	<!-- Open Sans & CSS -->
+	<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	
+	<script src="trade.js"></script>
+	  <style>
+		body {
+		  font-family: 'Roboto', sans-serif;
+		  font-size: 14px;
+		  font-weight: 400;
+		  color: #525252;
+		  text-align: center;
+		}
+		
+		html, body { 
+			width:auto; 
+			height:auto; 
+		}
+		
+		.axis text {
+		  font: 10px 'Roboto', sans-serif;
+		}
+
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+		
+		.highlight{
+		  font-weight: 500;
+		  color: #d6616b;
+		  font-size:18px;
+		}
+		
+		.export{
+		  font-weight: 600;
+		  color: #3182bd;
+		}
+		
+		.transit{
+		  font-weight: 600;
+		  color: #6b6ecf;
+		}
+		
+		.import{
+		  font-weight: 600;
+		  color: #d62728;
+		}
+
+
+	  </style>
+  </head>
+  <body>
+
+	
+	<div id="cont" class="container-fluid text-center">
+		<div class="row">
+			<div class="col-md-2">
+			</div>
+			<div class="col-md-8">
+			<h2 style="padding-bottom:10px" class="text-center"> Major countries in the pangolin trade</h2>
+			<p class="text-left"> <span class="highlight">Pangolins</span> are the most traded mammals in the world.  
+			Their numbers are decreasing sharply and it is essential to understand the major players involved.
+			In this visualization, each dot is an instance where pangolin was being traded involving a specific country.
+			We can see that India has the most number of trade instances related to pangolins,
+			followed by Malaysia, Vietnam, Indonesia, Thailand and China.  According to known pangolin distributions
+			and knowledge on pangolin demand, it can be suggested that <span class="export">India</span> is a 
+			major exporter, <span class="transit">Malaysia</span>, <span class="transit">Indonesia</span> 
+			and <span class="transit">Thailand</span> may be both major export and transit countries, and 
+			<span class="import">China</span> and <span class="import">Vietnam</span> the major consumer countries.
+			</p>
+			<p class="text-left">
+			Illegal data is difficult to come by, so less direct means are needed to get a grasp of the situation.
+			The Wildlife Heatmap is a website that serves articles related to the illegal wildlife trade, and its data is
+			obtained by means of a web crawler. The website is scraped to obtain all records involving pangolins between
+			2010 and 2017, as well as a date the each trade instance is reported and the country that is involved.  
+			There are 8 pangolin species, and the shapes after each country represents the species that are native to there. </p> 
+			</div>
+			<div class="col-md-2">
+			</div>
+		</div>
+		
+		<div class="row">
+			<div id="chart"></div>
+		</div>
+		<div class="row">
+			<div id="legend"></div>
+		</div>
+	</div>
+
+	<script>
+
+		var mobileScreen = ($( window ).innerWidth() < 500 ? true : false);
+		
+		var margin = {left:140, top:20, right:20, bottom:20};
+		var width = mobileScreen ? 350 : 1000;
+		var height = mobileScreen ? 400 : 550;
+		var legendHeight = 20;
+
+		
+		var legend = d3.select("#legend").append("svg")
+					.attr("width", width + margin.left + margin.right)
+					.attr("height", legendHeight);
+					
+					
+		var g = legend.append('g').attr("transform","translate(140,0)");
+		
+		
+					
+		
+		
+		// triangle: Indian Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("triangle-up"))
+				  	.attr("transform","translate(10,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Indian")
+				  	.attr("transform","translate(16,17)")
+				  	.attr("fill","black");
+				  	
+		// circle: Philippines Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("circle"))
+				  	.attr("transform","translate(65,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Philippines")
+				  	.attr("transform","translate(70,17)")
+				  	.attr("fill","black");
+				  	
+				  	
+		  // cross: Sunda Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("cross"))
+				  	.attr("transform","translate(150,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Sunda")
+				  	.attr("transform","translate(155,17)")
+				  	.attr("fill","black");
+				  	
+		 
+		 // diamond: Chinese Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("diamond"))
+				  	.attr("transform","translate(204,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Chinese")
+				  	.attr("transform","translate(209,17)")
+				  	.attr("fill","black");
+				  	
+		 // triangle-down: temminck's Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("triangle-down"))
+				  	.attr("transform","translate(270,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Temminck's")
+				  	.attr("transform","translate(276,17)")
+				  	.attr("fill","black");
+		
+		
+		// square: Black-bellied Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("square"))
+				  	.attr("transform","translate(360,12)")
+				  	.attr("fill","black");
+		
+		g.append("text")
+      				.text("Black-bellied")
+				  	.attr("transform","translate(366,17)")
+				  	.attr("fill","black");
+				  	
+		// diamond hollow: White-bellied Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("diamond"))
+				  	.attr("transform","translate(455,12)")
+				  	.attr("fill","none")
+				  	.attr("stroke", "black")
+				  	.attr("stroke-width","2px");
+		
+		g.append("text")
+      				.text("White-bellied")
+				  	.attr("transform","translate(461,17)")
+				  	.attr("fill","black");
+				  	
+		
+		// square hollow: Giant Ground Pangolin	
+		g.append("path")
+      				.attr("d", d3.svg.symbol().type("square"))
+				  	.attr("transform","translate(555,12)")
+				  	.attr("fill","none")
+				  	.attr("stroke", "black")
+				  	.attr("stroke-width","2px");
+		
+		g.append("text")
+      				.text("Giant Ground")
+				  	.attr("transform","translate(561,17)")
+				  	.attr("fill","black");
+				  	
+		
+      				
+		
+    		
+    	var data=trade;
+    		
+    	
+    	var tradeByCountry = d3.nest()
+		  .key(function(d) { return d.country; })
+		  .entries(trade);
+		  
+		  // console.log(tradeByCountry);
+		  
+		  tradeByCountry.forEach(function(country){
+		  	country['number']=country.values.length;
+		  	// console.log(country);
+		  });
+		  
+		  
+		  var country_colors = ["#393b79","#5254a3", '#6b6ecf', '#9c9ede', '#637939', '#8ca252','#b5cf6b','#cedb9c',
+    		'#8c6d31','#bd9e39','#e7ba52','#e7cb94','#843c39','#ad494a','#d6616b','#e7969c','#7b4173','#a55194',
+    		'#ce6dbd','#de9ed6', '#9467bd', '#c5b0d5','#3182bd', '#6baed6','#17becf','#9edae5','#e6550d','#fd8d3c','#fdae6b',
+    		'#31a354','#74c476','#a1d99b','#d62728','#ff9896','#7f7f7f','#c7c7c7'];
+    		
+    		
+    	   var colors = d3.scale.ordinal()
+    					.domain(d3.range(tradeByCountry.length))
+    					.range(country_colors);
+		  
+		  
+		  
+		  
+		  tradeByCountry.sort(function(x, y){
+			   return d3.descending(x.number, y.number);
+			})
+		  
+		  
+		  var countriesArray = [];
+		  
+		  
+		  tradeByCountry.forEach(function(country){
+		  		countriesArray.push(country.key);
+		  
+		  });
+		  
+		 //  console.log(countriesArray);
+		  
+		  
+		  var x = d3.time.scale()
+		    .rangeRound([0, width]);
+		    
+		    var y = d3.scale.linear()
+    			.range([height, 0]);
+    		
+    		
+    		var timeFormat = d3.time.format("%Y-%m-%d");
+    		
+    		x.domain([timeFormat.parse('2010-08-01'),timeFormat.parse('2017-01-01')]);
+  			y.domain(countriesArray);
+  			
+  			
+  			var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("bottom");
+				
+			var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient("left");
+				
+			var svg = d3.select("#chart").append("svg")
+					.attr("width", width + margin.left + margin.right)
+					.attr("height", height + margin.top + margin.bottom)
+				  	.append("g")
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+				svg.append("g")
+				  .attr("class", "x axis")
+				  .attr("transform", "translate(0," + height + ")")
+				  .call(xAxis)
+				  .append("text")
+				  .attr("class", "label")
+				  .attr("x", width)
+				  .attr("y", -6)
+				  .style("text-anchor", "end")
+				  .text("date");
+
+			  svg.append("g")
+				  .attr("class", "y axis")
+				  .call(yAxis)
+				  .append("text")
+				  .attr("class", "label")
+				  .attr("transform", "translate(35,-25)")
+				  .attr("y", 6)
+				  .attr("dy", ".71em")
+				  .style("text-anchor", "end")
+				  .text("countries");
+				  
+				
+				svg.selectAll("text.labels")
+					.data(tradeByCountry)
+					.enter()
+					.append("text")
+					.text(function(d) {return d.key})
+					.attr("x", 0)
+				  	.attr("y", function(d,i) { return (height/tradeByCountry.length)*i; })
+				  	.attr("transform", "translate(-140,5)")
+				  	.attr("fill",function(d,i) { return colors(i); });
+				 
+				 
+				 
+// 				var customSymbolTypes = d3.map({
+// 				  'thin-x': function(size) {
+// 					size = Math.sqrt(size);
+// 					return 'M' + (-size/2) + ',' + (-size/2) +
+// 					  'l' + size + ',' + size +
+// 					  'm0,' + -(size) + 
+// 					  'l' + (-size) + ',' + size;
+// 				  },
+// 				  'smiley': function(size) {
+// 					size = Math.sqrt(size);
+// 					var pad = size/5;
+// 					var r = size/8;
+// 					return 'M' + ((-size/2)+pad) + ',' + (-size/2) +
+// 					' m' + (-r) + ',0' +
+// 					' a' + r + ',' + r + ' 0 1,0' + (r * 2) + ',0' +
+// 					' a' + r + ',' + r + ' 0 1,0' + (-(r * 2)) + ',0' +
+// 	  
+// 					'M' + ((size/2)-pad) + ',' + (-size/2) +
+// 					' m' + (-r) + ',0' +
+// 					' a' + r + ',' + r + ' 0 1,0' + (r * 2) + ',0' +
+// 					' a' + r + ',' + r + ' 0 1,0' + (-(r * 2)) + ',0' +
+// 	  
+// 					'M' + (-size/2) + ',' + ((size/2)-(2*pad)) +
+// 					'q' + (size/2) + ',' + (pad*2) + ' ' + size + ',0';
+// 				  }
+// 				});
+// 
+// 					d3.svg.customSymbol = function() {
+// 					  var type,
+// 						  size = 64;
+// 					  function symbol(d,i) {
+// 						return customSymbolTypes.get(type.call(this,d,i))(size.call(this,d,i));
+// 					  }
+// 					  symbol.type = function(_) {
+// 						if (!arguments.length) return type;
+// 						type = d3.functor(_);
+// 						return symbol;
+// 					  };
+// 					  symbol.size = function(_) {
+// 						if (!arguments.length) return size;
+// 						size = d3.functor(_);
+// 						return symbol;
+// 					  };
+// 					  return symbol;
+// 					}; 
+// 		
+// 					function getSymbol(type, size) {
+// 					  size = size || 64;
+// 					  if (d3.svg.symbolTypes.indexOf(type) !== -1) {
+// 						return d3.svg.symbol().type(type).size(size)();
+// 					  } else {
+// 						return d3.svg.customSymbol().type(type).size(size)();
+// 					  }
+// 					}
+				 
+				  	
+				 
+				var pangolins = [{country:"India", species:"Indian", species2:"Chinese"},{country:"Malaysia", species:"Sunda"},{country:"Vietnam", species:"Sunda",species2:"Chinese"},
+				{country:"Indonesia", species:"Sunda"},{country:"Thailand", species:"Sunda",species2:"Chinese"},{country:"China", species:"Chinese"},{country:"Nepal", species:"Indian", species2:"Chinese"},
+				{country:"Myanmar", species:"Sunda", species2:"Chinese"},{country:"Hong Kong", species:"Chinese"}, {country:"Uganda", species:"White",species2:"Ground", species3:"Temmick"},{country:"Laos", species:"Sunda", species2:"Chinese"},
+				{country:"Kenya", species:""},{country:"Pakistan", species:"Indian"},{country:"Zimbabwe", species:"Temmick"},{country:"Cambodia", species:"Sunda"},
+				{country:"Philippines", species:"Philippines"},{country:"South Africa", species:"Temmick"},{country:"Cameroon", species:"Black", species2:"White",species3:"Ground"},{country:"Singapore", species:""},
+				{country:"Mozambique", species:"Temmick"},{country:"Sri Lanka", species:"Indian"},{country:"Zambia", species:"White", species2:"Temmick"},{country:"France", species:""},
+				{country:"Equatorial Guinea", species:"Black", species2:"White", species3:"Ground"},{country:"Rwanda", species:"Temmick"},{country:"Belgium", species:""},{country:"United States", species:""},
+				{country:"Congo", species:"Black", species2:"White", species3:"Ground"},{country:"Ethiopia", species:""},{country:"Namibia", species:"Temmick"},{country:"Taiwan", species:"Chinese"},
+				{country:"Togo", species:"White"},{country:"Botswana", species:"Temmick"},{country:"Sierra Leone", species:"Black",species2:"Ground"},{country:"Guinea", species:"White",species2:"Ground"}]; 	
+				  	
+ 				var Indian = svg.selectAll(".point")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point")
+      				.attr("d", d3.svg.symbol().type("triangle-up"))
+				  	.attr("transform", function(d,i) { return "translate(-75,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species == "Indian"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });
+				  		 
+				
+				var Philippines = svg.selectAll(".point1")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point1")
+      				.attr("d", d3.svg.symbol().type("circle"))
+				  	.attr("transform", function(d,i) { return "translate(-65,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species == "Philippines"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });
+				  		 
+				var Philippines = svg.selectAll(".point2")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point2")
+      				.attr("d", d3.svg.symbol().type("cross"))
+				  	.attr("transform", function(d,i) { return "translate(-55,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species == "Sunda"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });	
+				  		 
+				var Chinese = svg.selectAll(".point3")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point3")
+      				.attr("d", d3.svg.symbol().type("diamond"))
+				  	.attr("transform", function(d,i) { return "translate(-45,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species == "Chinese" || d.species2 == "Chinese"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });
+				  		 
+				  		 
+				  var Temmick = svg.selectAll(".point7")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point7")
+					.attr("d", d3.svg.symbol().type("triangle-down"))
+				  	.attr("transform", function(d,i) { return "translate(-35,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species2 == "Temmick" || d.species3=="Temmick" || d.species=="Temmick"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });	
+				  		 
+				  var Black = svg.selectAll(".point4")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point4")
+      				.attr("d", d3.svg.symbol().type("square"))
+				  	.attr("transform", function(d,i) { return "translate(-25,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("fill",function(d,i) { return colors(i); })
+				  	.style("opacity",function(d){
+				  		if( d.species == "Black"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });
+				  		 
+				  	var Black = svg.selectAll(".point5")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point5")
+					.attr("d", d3.svg.symbol().type("diamond"))
+				  	.attr("transform", function(d,i) { return "translate(-15,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("stroke",function(d,i) { return colors(i); })
+				  	.attr("stroke-width","2px")
+				  	.attr("fill","none")
+				  	.style("opacity",function(d){
+				  		if( d.species == "White" || d.species2=="White"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });	
+				  		 
+				  		 
+				  	var Ground = svg.selectAll(".point6")
+      				.data(pangolins)
+    				.enter().append("path")
+      				.attr("class", "point6")
+      				// .attr('d', function(d) {
+// 					  return getSymbol('smiley', 64);
+// 					})
+					.attr("d", d3.svg.symbol().type("square"))
+				  	.attr("transform", function(d,i) { return "translate(-5,"+ (height/tradeByCountry.length)*i +")"; })
+				  	.attr("stroke",function(d,i) { return colors(i); })
+				  	.attr("fill","none")
+				  	.attr("stroke-width","2px")
+				  	.style("opacity",function(d){
+				  		if( d.species2 == "Ground" || d.species3=="Ground"){
+				  		 return 1;
+				  		 }else{
+				  		 	return 0;
+				  		 } });						
+				  
+				  
+				  
+		
+				  svg.selectAll('.line')
+				  	.data(tradeByCountry)
+				  	.enter().append('line')
+    				.attr("x1", 0)     // x position of the first end of the line
+    				.attr("y1",function(d,i) { return (height/tradeByCountry.length)*i; })
+    				.attr("x2", width)     // x position of the second end of the line
+    				.attr("y2", function(d,i) { return (height/tradeByCountry.length)*i; }) 
+				  	.style("stroke",function(d,i) { return colors(i); })
+				  	.attr("id", function(d){return d.key});
+				  	
+	
+		  
+		  			var g = svg
+                    .selectAll("g.country")
+                    .data(tradeByCountry)
+                    .enter().append("g")
+                    .attr("class", "country")
+                    .attr("transform", function(d,i) {
+                        return "translate(0,"+(height/tradeByCountry.length)*i+")";
+                      })
+                    .selectAll(".dot")
+                    .data(function(d) {return d.values;})
+                    .enter().append("circle")
+                    .attr("class", "dot")
+                    .on("mouseover", showTooltip)
+					.on("mouseout",  removeTooltip)
+                    .attr("fill", function(d,i,ii) { return colors(ii); })
+                    .attr("stroke","black")
+                    .transition().delay(function(d,i) { return i*50; })
+                    .attr("id", function(d){ return d.country+"_"+d.date+"_"+d.count;})
+                    .attr("r", function(d){ return 6 ;}) // Math.sqrt(5*d.count)
+                    .attr("cx", function(d,i) { return (x(timeFormat.parse(d.date))); })
+                    .attr("cy", function(d,i) { return 0; }) 
+                    .style("opacity",0.8);
+
+		  
+		  			
+								//Hide the tooltip when the mouse moves away
+			function removeTooltip (d, i) {
+	
+				//Hide tooltip
+				$('.popover').each(function() {
+					$(this).remove();
+				}); 
+				//Fade out guide lines, then remove them
+				d3.selectAll(".guide")
+					.transition().duration(200)
+					.style("opacity",  0)
+					.remove();
+  
+		
+			}//function removeTooltip
+
+			//Show the tooltip on the hovered over slice
+			function showTooltip (d, i, ii) {
+	
+				//Define and show the tooltip
+				$(this).popover({
+					placement: 'auto top',
+					container: '#chart',
+					trigger: 'manual',
+					html : true,
+					content: function() { 
+						return "<span style='font-size: 11px; text-align: center;'>" + d.date +"</span>"; }
+				});
+				$(this).popover('show');
+				
+				var element = $(this);
+				
+				var color = colors(ii);
+				
+				var x = element.attr("cx"),
+					y = element.attr("cy");
+					
+				//Append lines to bubbles that will be used to show the precise data points
+				
+				
+				
+				//vertical line
+				svg
+					.append("line")
+					.attr("class", "guide")
+					.attr("x1", x)
+					.attr("x2", x)
+					.attr("y1", (height/35)*ii)
+					.attr("y2", height)
+					.style("stroke", color)
+					.style("stroke-width","3px")
+					.style("opacity",  0)
+					.transition().duration(200)
+					.style("opacity", 0.5);
+					
+				//horizontal line
+				svg
+					.append("line")
+					.attr("class", "guide")
+					.attr("x1", 0)
+					.attr("x2", x)
+					.attr("y1", (height/35)*ii)
+					.attr("y2", (height/35)*ii)
+					.style("stroke", color)
+					.style("stroke-width","3px")
+					.style("opacity",  0)
+					.transition().duration(200)
+					.style("opacity", 0.5);
+
+			
+		  }
+		  
+    		
+    		
+
+	</script>
+	
+  </body>
+</html>
